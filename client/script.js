@@ -23,6 +23,81 @@ async function loadBooks() {
     }
 }
 
+// Загрузка всех посетителей
+async function loadVisitors() {
+    const visitorsList = document.getElementById('visitorsList');
+    visitorsList.innerHTML = 'Loading...';
+
+    try {
+        const response = await fetch(`${API_URL}/visitors`);
+        if (!response.ok) {
+            throw new Error('Failed to load visitors');
+        }
+        const visitorsData = await response.json();
+        visitorsList.innerHTML = '';
+        visitorsData.forEach(visitor => {
+            const li = document.createElement('li');
+            li.textContent = `${visitor.firstName} ${visitor.lastName} (Registered: ${visitor.registrationDate})`;
+
+            // Текущие книги посетителя
+            const currentBooksList = document.createElement('ul');
+            if (visitor.currentBooks.length > 0) {
+                const currentBooksItem = document.createElement('li');
+                currentBooksItem.textContent = `Currently borrowed: ${visitor.currentBooks.join(', ')}`; // Объединяем книги в строку через запятую
+                currentBooksList.appendChild(currentBooksItem);
+            }
+
+            // Список прошлых книг посетителя
+            const pastBooksList = document.createElement('ul');
+            if (visitor.pastBooks.length > 0) {
+                const pastBooksItem = document.createElement('li');
+                pastBooksItem.textContent = `Past books: ${visitor.pastBooks.join(', ')}`; // Объединяем книги в строку через запятую
+                pastBooksList.appendChild(pastBooksItem);
+            }
+
+            li.appendChild(currentBooksList);
+            li.appendChild(pastBooksList);
+            visitorsList.appendChild(li);
+        });
+    } catch (error) {
+        visitorsList.innerHTML = 'Error loading visitors';
+        console.error('Error:', error);
+    }
+}
+
+// Загрузка всех работников
+async function loadEmployees() {
+    const employeesList = document.getElementById('employeesList');
+    employeesList.innerHTML = 'Loading...';
+
+    try {
+        const response = await fetch(`${API_URL}/employees`);
+        if (!response.ok) {
+            throw new Error('Failed to load employees');
+        }
+        const employeesData = await response.json();
+        employeesList.innerHTML = '';
+        employeesData.forEach(employee => {
+            const li = document.createElement('li');
+            li.textContent = `${employee.firstName} ${employee.lastName} (Experience: ${employee.experience} years, Section: ${employee.section})`;
+
+            // Рабочие дни сотрудника
+            const workDaysList = document.createElement('ul');
+            if (employee.days.length > 0) {
+                const workDaysItem = document.createElement('li');
+                workDaysItem.textContent = `Working days: ${employee.days.join(', ')}`; // Объединяем рабочие дни в строку через запятую
+                workDaysList.appendChild(workDaysItem);
+            }
+
+            li.appendChild(workDaysList);
+            employeesList.appendChild(li);
+        });
+    } catch (error) {
+        employeesList.innerHTML = 'Error loading employees';
+        console.error('Error:', error);
+    }
+}
+
 // Взять книгу
 async function takeBook(event) {
     event.preventDefault();
@@ -105,4 +180,7 @@ async function returnBook(event) {
 // Инициализация
 document.getElementById('takeBookForm').addEventListener('submit', takeBook);
 document.getElementById('returnBookForm').addEventListener('submit', returnBook);
+
 loadBooks();
+loadVisitors();
+loadEmployees();

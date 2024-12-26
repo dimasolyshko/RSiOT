@@ -47,14 +47,21 @@ app.get('/employees', async (req, res) => {
     try {
         const data = await readData('employees.txt');
         const employeesData = data.split('\n').map(line => {
-            const [firstName, lastName, experience, section, day] = line.split('|');
-            return { firstName, lastName, experience: parseInt(experience), section, day };
+            const [firstName, lastName, experience, section, days] = line.split('|');
+            return {
+                firstName,
+                lastName,
+                experience: parseInt(experience),
+                section,
+                days: days.split(',').filter(Boolean) // Фильтруем пустые значения дней
+            };
         });
         res.json(employeesData);
     } catch (err) {
         res.status(404).send('Error reading employees data');
     }
 });
+
 
 app.get('/visitors', async (req, res) => {
     try {
@@ -65,8 +72,8 @@ app.get('/visitors', async (req, res) => {
                 firstName,
                 lastName,
                 registrationDate,
-                currentBooks: currentBooks.split(','),
-                pastBooks: pastBooks.split(',')
+                currentBooks: currentBooks.split(',').filter(Boolean), // Фильтруем пустые значения
+                pastBooks: pastBooks.split(',').filter(Boolean) // Фильтруем пустые значения
             };
         });
         res.json(visitorsData);
@@ -74,6 +81,7 @@ app.get('/visitors', async (req, res) => {
         res.status(404).send('Error reading visitors data');
     }
 });
+
 
 app.post('/takeBook', async (req, res) => {
     const { visitorFirstName, visitorLastName, bookTitle, day } = req.body;
