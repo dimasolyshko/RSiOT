@@ -147,16 +147,18 @@ app.post('/takeBook', async (req, res) => {
 });
 
 app.post('/returnBook', async (req, res) => {
-    const { visitorName, bookTitle } = req.body;
+    const { visitorName, bookTitle, day } = req.body;  // Добавлен параметр day
 
     try {
         // Считываем данные из файлов
         const booksData = await readData('books.txt');
         const visitorsData = await readData('visitors.txt');
+        const employeesData = await readData('employees.txt');  // Считываем данные о сотрудниках
 
         // Разделяем данные на массивы строк
         const booksArray = booksData.split('\n');
         const visitorsArray = visitorsData.split('\n');
+        const employeesArray = employeesData.split('\n');
 
         // Находим индекс книги и посетителя по названию и имени
         const bookIndex = booksArray.findIndex(line => line.startsWith(bookTitle));
@@ -187,6 +189,20 @@ app.post('/returnBook', async (req, res) => {
         // Убираем книгу из текущих книг посетителя
         visitor[3] = visitor[3].split(',').filter(b => b !== book[0]).join(',');
 
+        // Проверка, какой библиотекарь работает в указанный день
+        const employee = employeesArray.find((line) => {
+            const [firstName, lastName, experience, section, days] = line.split('|');
+            return days.split(',').includes(day);  // Проверяем, работает ли сотрудник в этот день
+        });
+
+        if (!employee) {
+            return res.status(400).send('No librarian available on this day');
+        }
+
+        // Получаем данные о библиотекаре
+        const [firstName, lastName, , section, days] = employee.split('|');
+        const librarian = { firstName, lastName, section, days };
+
         // Обновляем строки в массивах
         booksArray[bookIndex] = book.join('|');
         visitorsArray[visitorIndex] = visitor.join('|');
@@ -195,12 +211,16 @@ app.post('/returnBook', async (req, res) => {
         await writeData('books.txt', booksArray.join('\n'));
         await writeData('visitors.txt', visitorsArray.join('\n'));
 
-        res.send('Book successfully returned');
+        // Отправляем ответ с информацией о библиотекаре
+        res.json({
+            message: 'Book successfully returned',
+            librarian: librarian
+        });
+
     } catch (err) {
         res.status(500).send('An error occurred while returning the book');
     }
 });
-
 
 
 app.listen(PORT, () => {

@@ -63,20 +63,18 @@ async function takeBook(event) {
     }
 }
 
-// Инициализация
-document.getElementById('takeBookForm').addEventListener('submit', takeBook);
-
-// Функция для возврата книги
+// Вернуть книгу
 async function returnBook(event) {
     event.preventDefault();
 
     const visitorName = document.getElementById('visitorName').value.trim();
-    const bookTitle = document.getElementById('bookTitleReturn').value.trim();
+    const returnBookTitle = document.getElementById('returnBookTitle').value.trim();
+    const returnDay = document.getElementById('returnDay').value;
 
     const errorField = document.getElementById('returnBookError');
     errorField.textContent = '';
 
-    if (!visitorName || !bookTitle) {
+    if (!visitorName || !returnBookTitle || !returnDay) {
         errorField.textContent = 'All fields are required.';
         return;
     }
@@ -85,7 +83,7 @@ async function returnBook(event) {
         const response = await fetch(`${API_URL}/returnBook`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ visitorName, bookTitle })
+            body: JSON.stringify({ visitorName, bookTitle: returnBookTitle, day: returnDay })
         });
 
         if (!response.ok) {
@@ -93,7 +91,9 @@ async function returnBook(event) {
             throw new Error(errorMessage);
         }
 
-        alert('Book successfully returned!');
+        const result = await response.json();
+
+        alert(`Book successfully returned!\nLibrarian: ${result.librarian.firstName} ${result.librarian.lastName}`);
         document.getElementById('returnBookForm').reset();
         loadBooks(); // Обновляем список книг
     } catch (error) {
@@ -103,6 +103,6 @@ async function returnBook(event) {
 }
 
 // Инициализация
+document.getElementById('takeBookForm').addEventListener('submit', takeBook);
 document.getElementById('returnBookForm').addEventListener('submit', returnBook);
-
 loadBooks();

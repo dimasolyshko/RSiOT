@@ -11,6 +11,7 @@
         <h1>Library System</h1>
     </header>
     <main>
+        <!-- Форма для взятия книги -->
         <section>
             <h2>Take a Book</h2>
             <form id="takeBookForm">
@@ -37,25 +38,42 @@
             </form>
         </section>
 
+        <!-- Форма для возврата книги -->
         <section>
             <h2>Return a Book</h2>
             <form id="returnBookForm">
-                <label for="visitorName">Visitor Name:</label>
-                <input type="text" id="visitorName" name="visitorName" placeholder="Enter visitor name" required>
-        
-                <label for="bookTitleReturn">Book Title:</label>
-                <input type="text" id="bookTitleReturn" name="bookTitleReturn" placeholder="Enter book title" required>
-        
+                <label for="visitorName">Visitor Name (First and Last):</label>
+                <input type="text" id="visitorName" name="visitorName" placeholder="Enter full name" required>
+
+                <label for="returnBookTitle">Book Title:</label>
+                <input type="text" id="returnBookTitle" name="returnBookTitle" placeholder="Enter book title" required>
+
+                <label for="returnDay">Day:</label>
+                <select id="returnDay" name="returnDay" required>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                </select>
+
                 <button type="submit">Return Book</button>
                 <p class="error" id="returnBookError"></p>
             </form>
-        </section>        
+        </section>
 
+        <!-- Список доступных книг -->
         <section>
             <h2>Available Books</h2>
             <ul id="booksList">
                 <li>Loading books...</li>
             </ul>
+        </section>
+        
+        <!-- Информация о библиотекаре -->
+        <section id="librarianInfo" style="display: none;">
+            <h3>Librarian Information</h3>
+            <p id="librarianDetails"></p>
         </section>
     </main>
     <footer>
