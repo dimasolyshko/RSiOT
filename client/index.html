@@ -38,6 +38,20 @@
         </section>
 
         <section>
+            <h2>Return a Book</h2>
+            <form id="returnBookForm">
+                <label for="visitorName">Visitor Name:</label>
+                <input type="text" id="visitorName" name="visitorName" placeholder="Enter visitor name" required>
+        
+                <label for="bookTitleReturn">Book Title:</label>
+                <input type="text" id="bookTitleReturn" name="bookTitleReturn" placeholder="Enter book title" required>
+        
+                <button type="submit">Return Book</button>
+                <p class="error" id="returnBookError"></p>
+            </form>
+        </section>        
+
+        <section>
             <h2>Available Books</h2>
             <ul id="booksList">
                 <li>Loading books...</li>

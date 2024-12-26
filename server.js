@@ -146,40 +146,52 @@ app.post('/takeBook', async (req, res) => {
     }
 });
 
-
-
-
-
 app.post('/returnBook', async (req, res) => {
     const { visitorName, bookTitle } = req.body;
 
     try {
+        // Считываем данные из файлов
         const booksData = await readData('books.txt');
         const visitorsData = await readData('visitors.txt');
 
-        const bookIndex = booksData.split('\n').findIndex(line => line.startsWith(bookTitle));
-        const visitorIndex = visitorsData.split('\n').findIndex(line => line.startsWith(visitorName));
+        // Разделяем данные на массивы строк
+        const booksArray = booksData.split('\n');
+        const visitorsArray = visitorsData.split('\n');
+
+        // Находим индекс книги и посетителя по названию и имени
+        const bookIndex = booksArray.findIndex(line => line.startsWith(bookTitle));
+        const visitorIndex = visitorsArray.findIndex(line => {
+            const [firstName, lastName] = line.split('|');
+            return `${firstName} ${lastName}` === visitorName;
+        });
 
         if (bookIndex === -1 || visitorIndex === -1) {
             return res.status(404).send('Book or visitor not found');
         }
 
-        let booksArray = booksData.split('\n');
-        let visitorsArray = visitorsData.split('\n');
-        const book = booksArray[bookIndex].split('|');
-        const visitor = visitorsArray[visitorIndex].split('|');
+        // Разбираем данные книги и посетителя
+        let book = booksArray[bookIndex].split('|');
+        let visitor = visitorsArray[visitorIndex].split('|');
 
         if (book[3] === 'available') {
             return res.status(400).send('Book is already available');
         }
 
+        // Изменяем статус книги на "available"
         book[3] = 'available';
-        visitor[4] = visitor[4] ? `${visitor[4]},${book[0]}` : book[0];
+
+        // Добавляем книгу в историю прошлых книг посетителя
+        const pastBooks = visitor[4].split(',').filter(b => b !== '').join(',');  // Убираем пустые значения
+        visitor[4] = pastBooks ? `${pastBooks},${book[0]}` : book[0];
+
+        // Убираем книгу из текущих книг посетителя
         visitor[3] = visitor[3].split(',').filter(b => b !== book[0]).join(',');
 
+        // Обновляем строки в массивах
         booksArray[bookIndex] = book.join('|');
         visitorsArray[visitorIndex] = visitor.join('|');
 
+        // Сохраняем изменения в файлы
         await writeData('books.txt', booksArray.join('\n'));
         await writeData('visitors.txt', visitorsArray.join('\n'));
 
@@ -188,6 +200,8 @@ app.post('/returnBook', async (req, res) => {
         res.status(500).send('An error occurred while returning the book');
     }
 });
+
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
