@@ -104,7 +104,7 @@ app.post('/takeBook', async (req, res) => {
         }
 
         // Проверка наличия библиотекаря на указанный день
-        const employee = employees.find(([, , , , empDay]) => empDay === day);
+        const employee = employees.find(([, , , , empDays]) => empDays.split(',').includes(day));
         if (!employee) {
             return res.status(400).send('No librarian available on this day');
         }
@@ -145,6 +145,7 @@ app.post('/takeBook', async (req, res) => {
         res.status(500).send('An error occurred while taking the book');
     }
 });
+
 
 
 
