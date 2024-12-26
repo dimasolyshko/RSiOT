@@ -1,73 +1,178 @@
 const express = require('express');
+const cors = require('cors');
 const fs = require('fs');
 
 const app = express();
 const PORT = 3000;
 
-let allBooks = []; 
-let allEmployees = []; 
-let allVisitors = []; 
+let allBooks = [];
+let allEmployees = [];
+let allVisitors = [];
 
+app.use(cors());
 app.use(express.json());
 
-app.get('/books', (req, res) => {
-    allBooks = [];
-
-    fs.readFile('books.txt', 'utf8', (err, data) => {
-        if (err) {
-            res.status(404).send('Error reading books data');
-        } else {
-            const booksData = data.split('\n').map(line => {
-                const [title, author, pages] = line.split('|');
-                const book = { title, author, pages: parseInt(pages) };
-                allBooks.push(book);
-                return book;
-            });
-
-            res.json({booksData});
-        }
+const readData = (filename) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(filename, 'utf8', (err, data) => {
+            if (err) reject(err);
+            else resolve(data);
+        });
     });
+};
+
+const writeData = (filename, data) => {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(filename, data, 'utf8', (err) => {
+            if (err) reject(err);
+            else resolve();
+        });
+    });
+};
+
+app.get('/books', async (req, res) => {
+    try {
+        const data = await readData('books.txt');
+        const booksData = data.split('\n').map(line => {
+            const [title, author, pages, status] = line.split('|');
+            return { title, author, pages: parseInt(pages), status };
+        });
+        res.json(booksData);
+    } catch (err) {
+        res.status(404).send('Error reading books data');
+    }
 });
 
-app.get('/employees', (req, res) => {
-    allEmployes = [];
-    fs.readFile('employees.txt', 'utf8', (err, data) => {
-        if (err) {
-            res.status(404).send('Error reading employees data');
-        } else {
-            const employeesData = data.split('\n').map(line => {
-                const [firstName, lastName, experience, section] = line.split('|');
-                const employee = { firstName, lastName, experience: parseInt(experience), section };
-                allEmployees.push(employee);
-                return employee;
-            });
-            res.json(employeesData);
-        }
-    });
+app.get('/employees', async (req, res) => {
+    try {
+        const data = await readData('employees.txt');
+        const employeesData = data.split('\n').map(line => {
+            const [firstName, lastName, experience, section, day] = line.split('|');
+            return { firstName, lastName, experience: parseInt(experience), section, day };
+        });
+        res.json(employeesData);
+    } catch (err) {
+        res.status(404).send('Error reading employees data');
+    }
 });
 
-app.get('/visitors', (req, res) => {
-    let allVisitors = []
+app.get('/visitors', async (req, res) => {
+    try {
+        const data = await readData('visitors.txt');
+        const visitorsData = data.split('\n').map(line => {
+            const [firstName, lastName, registrationDate, currentBooks, pastBooks] = line.split('|');
+            return {
+                firstName,
+                lastName,
+                registrationDate,
+                currentBooks: currentBooks.split(','),
+                pastBooks: pastBooks.split(',')
+            };
+        });
+        res.json(visitorsData);
+    } catch (err) {
+        res.status(404).send('Error reading visitors data');
+    }
+});
 
-    fs.readFile('visitors.txt', 'utf8', (err, data) => {
-        if (err) {
-            res.status(404).send('Error reading visitors data');
-        } else {
-            const visitorsData = data.split('\n').map(line => {
-                const [firstName, lastName, registrationDate, currentBooks, pastBooks] = line.split('|');
-                const visitor = {
-                    firstName,
-                    lastName,
-                    registrationDate,
-                    currentBooks: currentBooks.split(','),
-                    pastBooks: pastBooks.split(',')
-                };
-                allVisitors.push(visitor);
-                return visitor;
-            });
-            res.json(visitorsData);
+app.post('/takeBook', async (req, res) => {
+    const { visitorFirstName, visitorLastName, bookTitle, day } = req.body;
+
+    try {
+        const employeesData = await readData('employees.txt');
+        const booksData = await readData('books.txt');
+        const visitorsData = await readData('visitors.txt');
+
+        const employees = employeesData.split('\n').map(line => line.split('|'));
+        const booksArray = booksData.split('\n');
+        const visitorsArray = visitorsData.split('\n');
+
+        // Найти индекс книги
+        const bookIndex = booksArray.findIndex(line => line.startsWith(bookTitle));
+        if (bookIndex === -1) {
+            return res.status(404).send('Book not found');
         }
-    });
+
+        // Найти посетителя по имени и фамилии
+        const visitorIndex = visitorsArray.findIndex(line => {
+            const [firstName, lastName] = line.split('|');
+            return firstName === visitorFirstName && lastName === visitorLastName;
+        });
+
+        if (visitorIndex === -1) {
+            return res.status(404).send('Visitor not found');
+        }
+
+        // Проверка наличия библиотекаря на указанный день
+        const employee = employees.find(([, , , , empDay]) => empDay === day);
+        if (!employee) {
+            return res.status(400).send('No librarian available on this day');
+        }
+
+        // Работа с данными книги и посетителя
+        const book = booksArray[bookIndex].split('|');
+        const visitor = visitorsArray[visitorIndex].split('|');
+
+        if (book[3] === 'unavailable') {
+            return res.status(400).send('Book is currently unavailable');
+        }
+
+        // Обновить статус книги и закрепить за посетителем
+        book[3] = 'unavailable';
+        visitor[3] = visitor[3] ? `${visitor[3]},${book[0]}` : book[0];
+
+        // Обновить данные в массиве
+        booksArray[bookIndex] = book.join('|');
+        visitorsArray[visitorIndex] = visitor.join('|');
+
+        // Сохранить изменения в файлах
+        await writeData('books.txt', booksArray.join('\n'));
+        await writeData('visitors.txt', visitorsArray.join('\n'));
+
+        res.send('Book successfully taken');
+    } catch (err) {
+        res.status(500).send('An error occurred while taking the book');
+    }
+});
+
+
+app.post('/returnBook', async (req, res) => {
+    const { visitorName, bookTitle } = req.body;
+
+    try {
+        const booksData = await readData('books.txt');
+        const visitorsData = await readData('visitors.txt');
+
+        const bookIndex = booksData.split('\n').findIndex(line => line.startsWith(bookTitle));
+        const visitorIndex = visitorsData.split('\n').findIndex(line => line.startsWith(visitorName));
+
+        if (bookIndex === -1 || visitorIndex === -1) {
+            return res.status(404).send('Book or visitor not found');
+        }
+
+        let booksArray = booksData.split('\n');
+        let visitorsArray = visitorsData.split('\n');
+        const book = booksArray[bookIndex].split('|');
+        const visitor = visitorsArray[visitorIndex].split('|');
+
+        if (book[3] === 'available') {
+            return res.status(400).send('Book is already available');
+        }
+
+        book[3] = 'available';
+        visitor[4] = visitor[4] ? `${visitor[4]},${book[0]}` : book[0];
+        visitor[3] = visitor[3].split(',').filter(b => b !== book[0]).join(',');
+
+        booksArray[bookIndex] = book.join('|');
+        visitorsArray[visitorIndex] = visitor.join('|');
+
+        await writeData('books.txt', booksArray.join('\n'));
+        await writeData('visitors.txt', visitorsArray.join('\n'));
+
+        res.send('Book successfully returned');
+    } catch (err) {
+        res.status(500).send('An error occurred while returning the book');
+    }
 });
 
 app.listen(PORT, () => {

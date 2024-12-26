@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Client</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Library System</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Take a Book</h2>
+            <form id="takeBookForm">
+                <label for="visitorFirstName">Visitor First Name:</label>
+                <input type="text" id="visitorFirstName" name="visitorFirstName" placeholder="Enter first name" required>
+
+                <label for="visitorLastName">Visitor Last Name:</label>
+                <input type="text" id="visitorLastName" name="visitorLastName" placeholder="Enter last name" required>
+
+                <label for="bookTitle">Book Title:</label>
+                <input type="text" id="bookTitle" name="bookTitle" placeholder="Enter book title" required>
+
+                <label for="day">Day:</label>
+                <select id="day" name="day" required>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                </select>
+
+                <button type="submit">Take Book</button>
+                <p class="error" id="takeBookError"></p>
+            </form>
+        </section>
+
+        <section>
+            <h2>Available Books</h2>
+            <ul id="booksList">
+                <li>Loading books...</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Library System</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
