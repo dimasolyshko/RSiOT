@@ -24,6 +24,7 @@ async function loadBooks() {
 }
 
 // Взять книгу
+// Взять книгу
 async function takeBook(event) {
     event.preventDefault();
 
@@ -52,7 +53,9 @@ async function takeBook(event) {
             throw new Error(errorMessage);
         }
 
-        alert('Book successfully taken!');
+        const result = await response.json();
+        alert(`Book successfully taken!\nLibrarian: ${result.librarian.firstName} ${result.librarian.lastName}`);
+
         document.getElementById('takeBookForm').reset();
         loadBooks(); // Обновляем список книг
     } catch (error) {
@@ -60,6 +63,7 @@ async function takeBook(event) {
         console.error('Error:', error);
     }
 }
+
 
 // Инициализация
 document.getElementById('takeBookForm').addEventListener('submit', takeBook);

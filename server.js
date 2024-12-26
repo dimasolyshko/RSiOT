@@ -129,11 +129,24 @@ app.post('/takeBook', async (req, res) => {
         await writeData('books.txt', booksArray.join('\n'));
         await writeData('visitors.txt', visitorsArray.join('\n'));
 
-        res.send('Book successfully taken');
+        // Информация о библиотекаре
+        const librarian = {
+            firstName: employee[0],
+            lastName: employee[1],
+            section: employee[3],
+            days: employee[4]
+        };
+
+        res.json({
+            message: 'Book successfully taken',
+            librarian: librarian
+        });
     } catch (err) {
         res.status(500).send('An error occurred while taking the book');
     }
 });
+
+
 
 
 app.post('/returnBook', async (req, res) => {
