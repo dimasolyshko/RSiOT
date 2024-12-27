@@ -1,6 +1,5 @@
 const API_URL = 'http://localhost:3000';
 
-// Загрузка всех книг
 async function loadBooks() {
     const booksList = document.getElementById('booksList');
     booksList.innerHTML = 'Loading...';
@@ -23,7 +22,6 @@ async function loadBooks() {
     }
 }
 
-// Загрузка всех посетителей
 async function loadVisitors() {
     const visitorsList = document.getElementById('visitorsList');
     visitorsList.innerHTML = 'Loading...';
@@ -39,19 +37,17 @@ async function loadVisitors() {
             const li = document.createElement('li');
             li.textContent = `${visitor.firstName} ${visitor.lastName} (Registered: ${visitor.registrationDate})`;
 
-            // Текущие книги посетителя
             const currentBooksList = document.createElement('ul');
             if (visitor.currentBooks.length > 0) {
                 const currentBooksItem = document.createElement('li');
-                currentBooksItem.textContent = `Currently borrowed: ${visitor.currentBooks.join(', ')}`; // Объединяем книги в строку через запятую
+                currentBooksItem.textContent = `Currently borrowed: ${visitor.currentBooks.join(', ')}`; // Выводим названия книг
                 currentBooksList.appendChild(currentBooksItem);
             }
 
-            // Список прошлых книг посетителя
             const pastBooksList = document.createElement('ul');
             if (visitor.pastBooks.length > 0) {
                 const pastBooksItem = document.createElement('li');
-                pastBooksItem.textContent = `Past books: ${visitor.pastBooks.join(', ')}`; // Объединяем книги в строку через запятую
+                pastBooksItem.textContent = `Past books: ${visitor.pastBooks.join(', ')}`; // Выводим названия книг
                 pastBooksList.appendChild(pastBooksItem);
             }
 
@@ -65,7 +61,6 @@ async function loadVisitors() {
     }
 }
 
-// Загрузка всех работников
 async function loadEmployees() {
     const employeesList = document.getElementById('employeesList');
     employeesList.innerHTML = 'Loading...';
@@ -81,11 +76,10 @@ async function loadEmployees() {
             const li = document.createElement('li');
             li.textContent = `${employee.firstName} ${employee.lastName} (Experience: ${employee.experience} years, Section: ${employee.section})`;
 
-            // Рабочие дни сотрудника
             const workDaysList = document.createElement('ul');
             if (employee.days.length > 0) {
                 const workDaysItem = document.createElement('li');
-                workDaysItem.textContent = `Working days: ${employee.days.join(', ')}`; // Объединяем рабочие дни в строку через запятую
+                workDaysItem.textContent = `Working days: ${employee.days.join(', ')}`; 
                 workDaysList.appendChild(workDaysItem);
             }
 
@@ -98,7 +92,6 @@ async function loadEmployees() {
     }
 }
 
-// Взять книгу
 async function takeBook(event) {
     event.preventDefault();
 
@@ -116,29 +109,44 @@ async function takeBook(event) {
     }
 
     try {
-        const response = await fetch(`${API_URL}/takeBook`, {
+        // Получаем все книги
+        const response = await fetch(`${API_URL}/books`);
+        const booksData = await response.json();
+        const book = booksData.find(b => b.title === bookTitle);
+
+        if (!book) {
+            errorField.textContent = 'Book not found';
+            return;
+        }
+
+        // Отправляем запрос на взятие книги
+        const responseTake = await fetch(`${API_URL}/takeBook`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ visitorFirstName, visitorLastName, bookTitle, day })
+            body: JSON.stringify({
+                visitorFirstName,
+                visitorLastName,
+                bookId: book.id, // Используем ID книги
+                day
+            })
         });
 
-        if (!response.ok) {
-            const errorMessage = await response.text();
+        if (!responseTake.ok) {
+            const errorMessage = await responseTake.text();
             throw new Error(errorMessage);
         }
 
-        const result = await response.json();
+        const result = await responseTake.json();
         alert(`Book successfully taken!\nLibrarian: ${result.librarian.firstName} ${result.librarian.lastName}`);
 
         document.getElementById('takeBookForm').reset();
-        loadBooks(); // Обновляем список книг
+        loadBooks(); 
     } catch (error) {
         errorField.textContent = `Error taking book: ${error.message}`;
         console.error('Error:', error);
     }
 }
 
-// Вернуть книгу
 async function returnBook(event) {
     event.preventDefault();
 
@@ -155,29 +163,44 @@ async function returnBook(event) {
     }
 
     try {
-        const response = await fetch(`${API_URL}/returnBook`, {
+        const response = await fetch(`${API_URL}/books`);
+        const booksData = await response.json();
+        const book = booksData.find(b => b.title === returnBookTitle);
+
+        if (!book) {
+            errorField.textContent = 'Book not found';
+            return;
+        }
+
+        const responseReturn = await fetch(`${API_URL}/returnBook`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ visitorName, bookTitle: returnBookTitle, day: returnDay })
+            body: JSON.stringify({
+                visitorFirstName: visitorName.split(' ')[0],
+                visitorLastName: visitorName.split(' ')[1],
+                bookId: book.id,
+                day: returnDay
+            })
         });
 
-        if (!response.ok) {
-            const errorMessage = await response.text();
+        if (!responseReturn.ok) {
+            const errorMessage = await responseReturn.text();
             throw new Error(errorMessage);
         }
 
-        const result = await response.json();
-
+        const result = await responseReturn.json();
         alert(`Book successfully returned!\nLibrarian: ${result.librarian.firstName} ${result.librarian.lastName}`);
+
         document.getElementById('returnBookForm').reset();
-        loadBooks(); // Обновляем список книг
+        loadBooks(); 
     } catch (error) {
         errorField.textContent = `Error returning book: ${error.message}`;
         console.error('Error:', error);
     }
 }
 
-// Инициализация
+
+
 document.getElementById('takeBookForm').addEventListener('submit', takeBook);
 document.getElementById('returnBookForm').addEventListener('submit', returnBook);
 
