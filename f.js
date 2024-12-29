@@ -1,6 +1,5 @@
 const fs = require('fs');
 
-// Алгоритм сжатия LZSS
 function lzssCompress(input) {
     let i = 0;
     let result = [];
@@ -34,7 +33,6 @@ function lzssCompress(input) {
     return result;
 }
 
-// Алгоритм декомпрессии LZSS
 function lzssDecompress(compressedData) {
     const result = [];
   
@@ -52,7 +50,6 @@ function lzssDecompress(compressedData) {
     return result.join("");
 }
 
-// Функция для записи зашифрованного и сжатого ключа в файл
 const writeEncryptedKeyToFile = (key, filename) => {
     const compressedKey = lzssCompress(key);
     const compressedKeyString = JSON.stringify(compressedKey);
@@ -66,7 +63,6 @@ const writeEncryptedKeyToFile = (key, filename) => {
     });
 };
 
-// Функция для чтения и декомпрессии ключа из файла
 const readAndDecompressKeyFromFile = (filename, outputFilename) => {
     fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
@@ -92,13 +88,10 @@ const readAndDecompressKeyFromFile = (filename, outputFilename) => {
     });
 };
 
-// Пример использования:
-const key = 'лаба';  // Ваш ключ, который нужно зашифровать
-const encryptedFilename = 'encrypted_vigenere_key.txt';  // Имя файла для записи зашифрованного ключа
-const decryptedFilename = 'decrypted_vigenere_key.txt';  // Имя файла для записи расшифрованного ключа
+const key = 'лаба';  
+const encryptedFilename = 'encrypted_vigenere_key.txt';  
+const decryptedFilename = 'decrypted_vigenere_key.txt';  
 
-// Записываем зашифрованный ключ
 writeEncryptedKeyToFile(key, encryptedFilename);
 
-// Читаем зашифрованный ключ, декомпрессируем и записываем в новый файл
 readAndDecompressKeyFromFile(encryptedFilename, decryptedFilename);

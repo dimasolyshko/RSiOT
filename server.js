@@ -294,6 +294,67 @@ app.post('/returnBook', async (req, res) => {
     }
   });
 
+  app.get('/download/:type/:id', async (req, res) => {
+    const { type, id } = req.params;
+    const encryptionKey = "лаба";
+  
+    try {
+      let fileData, selectedItem;
+  
+      // Получаем данные по нужному типу элемента
+      if (type === 'book') {
+        fileData = await readData('books_encrypted.txt', encryptionKey);
+        selectedItem = fileData.split('\n').find(line => {
+          const [bookId] = line.split('|');
+          return bookId === id;
+        });
+        if (!selectedItem) {
+          return res.status(404).send('Book not found');
+        }
+        selectedItem = selectedItem.split('|');
+        const bookData = `Book ID: ${selectedItem[0]}\nTitle: ${selectedItem[1]}\nAuthor: ${selectedItem[2]}\nPages: ${selectedItem[3]}\nStatus: ${selectedItem[4]}`;
+  
+        res.setHeader('Content-Disposition', 'attachment; filename="book_data.txt"');
+        res.send(bookData);
+  
+      } else if (type === 'visitor') {
+        fileData = await readData('visitors_encrypted.txt', encryptionKey);
+        selectedItem = fileData.split('\n').find(line => {
+          const [firstName, lastName] = line.split('|');
+          return `${firstName} ${lastName}` === id;
+        });
+        if (!selectedItem) {
+          return res.status(404).send('Visitor not found');
+        }
+        selectedItem = selectedItem.split('|');
+        const visitorData = `Name: ${selectedItem[0]} ${selectedItem[1]}\nRegistration Date: ${selectedItem[2]}\nCurrent Books: ${selectedItem[3]}\nPast Books: ${selectedItem[4]}`;
+  
+        res.setHeader('Content-Disposition', 'attachment; filename="visitor_data.txt"');
+        res.send(visitorData);
+  
+      } else if (type === 'employee') {
+        fileData = await readData('employees_encrypted.txt', encryptionKey);
+        selectedItem = fileData.split('\n').find(line => {
+          const [firstName, lastName] = line.split('|');
+          return `${firstName} ${lastName}` === id;
+        });
+        if (!selectedItem) {
+          return res.status(404).send('Employee not found');
+        }
+        selectedItem = selectedItem.split('|');
+        const employeeData = `First Name: ${selectedItem[0]}\nLast Name: ${selectedItem[1]}\nExperience: ${selectedItem[2]} years\nSection: ${selectedItem[3]}\nWorking Days: ${selectedItem[4]}`;
+  
+        res.setHeader('Content-Disposition', 'attachment; filename="employee_data.txt"');
+        res.send(employeeData);
+  
+      } else {
+        return res.status(400).send('Invalid type');
+      }
+    } catch (err) {
+      res.status(500).send('Error processing data: ' + err.message);
+    }
+  });
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

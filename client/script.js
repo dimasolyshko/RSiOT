@@ -199,11 +199,92 @@ async function returnBook(event) {
     }
 }
 
-
-
-document.getElementById('takeBookForm').addEventListener('submit', takeBook);
-document.getElementById('returnBookForm').addEventListener('submit', returnBook);
+function downloadBookData() {
+    const bookId = document.getElementById('bookId').value.trim();
+    
+    if (!bookId) {
+      alert('Пожалуйста, введите ID книги');
+      return;
+    }
+  
+    fetch(`${API_URL}/download/book/${bookId}`)
+      .then(response => {
+        if (response.ok) {
+          return response.blob();
+        } else {
+          throw new Error('Ошибка при скачивании данных книги');
+        }
+      })
+      .then(blob => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'book_data.txt';
+        link.click();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при скачивании данных');
+      });
+  }
+  
+  function downloadVisitorData() {
+    const visitorName = document.getElementById('visitrName').value.trim();
+    
+    if (!visitorName) {
+      alert('Пожалуйста, введите имя и фамилию посетителя');
+      return;
+    }
+  
+    fetch(`${API_URL}/download/visitor/${visitorName}`)
+      .then(response => {
+        if (response.ok) {
+          return response.blob();
+        } else {
+          throw new Error('Ошибка при скачивании данных посетителя');
+        }
+      })
+      .then(blob => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'visitor_data.txt';
+        link.click();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при скачивании данных');
+      });
+  }
+  
+  function downloadEmployeeData() {
+    const employeeName = document.getElementById('employeeName').value.trim();
+    
+    if (!employeeName) {
+      alert('Пожалуйста, введите имя и фамилию сотрудника');
+      return;
+    }
+  
+    fetch(`${API_URL}/download/employee/${employeeName}`)
+      .then(response => {
+        if (response.ok) {
+          return response.blob();
+        } else {
+          throw new Error('Ошибка при скачивании данных сотрудника');
+        }
+      })
+      .then(blob => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'employee_data.txt';
+        link.click();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при скачивании данных');
+      });
+  }
 
 loadBooks();
 loadVisitors();
 loadEmployees();
+document.getElementById('takeBookForm').addEventListener('submit', takeBook);
+document.getElementById('returnBookForm').addEventListener('submit', returnBook);

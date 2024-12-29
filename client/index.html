@@ -12,6 +12,26 @@
     </header>
     <main>
         <section>
+            <h3>Скачать данные книги</h3>
+            <label for="bookId">Введите ID книги:</label>
+            <input type="text" id="bookId" placeholder="ID книги">
+            <button onclick="downloadBookData()">Скачать данные книги</button>
+        </section>
+        
+        <section>
+            <h3>Скачать данные посетителя</h3>
+            <label for="visitrName">Введите имя посетителя:</label>
+            <input type="text" id="visitrName" placeholder="Имя и фамилия посетителя">
+            <button onclick="downloadVisitorData()">Скачать данные посетителя</button>
+        </section>
+        
+        <section>
+            <h3>Скачать данные сотрудника</h3>
+            <label for="employeeName">Введите имя сотрудника:</label>
+            <input type="text" id="employeeName" placeholder="Имя и фамилия сотрудника">
+            <button onclick="downloadEmployeeData()">Скачать данные сотрудника</button>
+        </section>
+        <section>
             <h2>Take a Book</h2>
             <form id="takeBookForm">
                 <label for="visitorFirstName">Visitor First Name:</label>
@@ -79,7 +99,7 @@
             <ul id="employeesList">
                 <li>Loading employees...</li>
             </ul>
-        </section>
+        </section> 
 
     </main>
     <footer>
